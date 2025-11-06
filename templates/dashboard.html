@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard | NexusBoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="overlay" onclick="toggleSidebar()"></div>
+
+  <header class="topbar">
+    <div class="brand-area">
+      <div class="hamburger" onclick="toggleSidebar()">☰</div>
+      <div class="brand">Nexus Board</div>
+    </div>
+    <div class="actions">
+      <img id="topbarAvatar" alt="Avatar" class="topbar-avatar" src="">
+      <span>👋 Hello, <b>{{ user.username }}</b></span>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </header>
+
+  <nav id="sidebar" class="sidebar">
+    <div class="sidebar-header">⚡ Menu</div>
+    <ul>
+      <li><a href="#" class="active" onclick="showSection('home', this)">🏠 Profile</a></li>
+      <li><a href="#" onclick="showSection('created', this)">📋 Boards You Created</a></li>
+      <li><a href="#" onclick="showSection('joined', this)">🤝 Boards You Joined</a></li>
+      <li><a href="#" onclick="showSection('create', this)">➕ Create Board</a></li>
+      <li><a href="#" onclick="showSection('join', this)">🔑 Join Board</a></li>
+      <li><a href="#" onclick="showSection('timespent', this)">🕒 Time Spent</a></li>
+      <li><a href="{{ url_for('logout') }}">🚪 Logout</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flashContainer">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<section id="home" class="active">
+  <div class="welcome">
+    <h1>Welcome, {{ user.username }} 🌟</h1>
+
+    <!-- ====== Avatar Section ====== -->
+    <div id="avatarSection">
+      <img id="userAvatar" alt="User Avatar" src="" class="profile-avatar" />
+      <div class="avatar-actions">
+        <button onclick="toggleAvatarEditor()">✏️ Edit Avatar</button>
+      </div>
+    </div>
+
+    <!-- ====== Avatar Customization Panel (hidden until clicked) ====== -->
+    <div id="avatarEditor" class="avatar-editor" style="display:none;">
+      <h3>🎨 Customize Your Avatar</h3>
+
+      <div class="avatar-preview-box">
+        <img id="avatarPreview" src="" alt="Avatar Preview" />
+      </div>
+
+      <div class="avatar-options">
+        <label>Gender:</label>
+        <select id="genderSelect">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+
+        <label>Face Shape:</label>
+        <select id="faceSelect">
+          <option value="Round">Round</option>
+          <option value="Chiseled">Chiseled</option>
+          <option value="Oval">Oval</option>
+        </select>
+
+        <label>Skin Tone:</label>
+        <select id="skinSelect">
+          <option value="Light">Light</option>
+          <option value="Tanned">Tanned</option>
+          <option value="Brown">Brown</option>
+          <option value="DarkBrown">Dark</option>
+        </select>
+
+        <label>Hair Style:</label>
+        <select id="hairSelect"></select>
+
+        <label>Hair Color:</label>
+        <select id="hairColorSelect">
+          <option value="Black">Black</option>
+          <option value="Brown">Brown</option>
+          <option value="Blonde">Blonde</option>
+          <option value="Red">Red</option>
+          <option value="Gray">Gray</option>
+        </select>
+
+        <div class="avatar-buttons">
+          <button onclick="saveAvatar()">💾 Save</button>
+          <button onclick="toggleAvatarEditor()">❌ Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Daily Quote Section ====== -->
+    <div class="quote-of-the-day">
+      <blockquote id="dailyQuote">Loading quote...</blockquote>
+      <p id="quoteAuthor"></p>
+    </div>
+  </div>
+</section>
+
+
+    <section id="created">
+      <h2>📋 Boards You Created</h2>
+      {% if owned_boards %}
+        <div class="board-container">
+          {% for b in owned_boards %}
+            <div class="board-card">
+              <h3>{{ b.name }}</h3>
+              <p>{{ b.description or 'No description' }}</p>
+              <small>Code: {{ b.board_code }} • Created: {{ b.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+              <div class="board-actions">
+                <a href="{{ url_for('board_view', board_id=b.id) }}">Open</a> |
+                <a href="{{ url_for('edit_board', board_id=b.id) }}">Edit</a> |
+                <a href="{{ url_for('delete_board', board_id=b.id) }}" onclick="return confirm('Delete this board?')">Delete</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No boards created yet.</p>
+      {% endif %}
+    </section>
+
+    <section id="joined">
+      <h2>🤝 Boards You Joined</h2>
+      {% if joined_boards %}
+        <div class="board-container">
+          {% for b in joined_boards %}
+            <div class="board-card">
+              <h3>{{ b.name }}</h3>
+              <p>{{ b.description or 'No description' }}</p>
+              <small>Owner: {{ b.owner_name }} • Created: {{ b.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+              <div class="board-actions">
+                <a href="{{ url_for('board_view', board_id=b.id) }}">Open</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>You haven’t joined any boards yet.</p>
+      {% endif %}
+    </section>
+
+    <section id="create">
+      <div class="create-board">
+        <h3>✨ Create New Board</h3>
+        <form method="POST" action="{{ url_for('add_board') }}" class="auth-form">
+          <label>Name</label>
+          <input name="name" required>
+          <label>Description</label>
+          <input name="description">
+          <button type="submit">Create</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="join">
+      <div class="create-board">
+        <h3>🔑 Join a Board</h3>
+        <form method="POST" action="{{ url_for('join_board') }}" class="auth-form">
+          <label>Board Code</label>
+          <input name="board_code" placeholder="e.g. NXBAB12" required>
+          <button type="submit">Join</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========== TIME SPENT SECTION ========== -->
+    <section id="timespent">
+      <h2>🕒 Time Spent Analytics</h2>
+      <p style="color:#555;">Track your daily time on NexusBoard.</p>
+
+      <div class="time-summary">
+        <h3>Today: <span id="todayTime">0h 0m 0s</span></h3>
+      </div>
+
+      <canvas id="weeklyChart" style="max-width:600px;margin:30px auto;display:block;"></canvas>
+    </section>
+
+  </main>
+
+  <script>
+  async function loadQuote() {
+    try {
+      const res = await fetch('/get_daily_quote');
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('dailyQuote').textContent = `"${data.quote}"`;
+        document.getElementById('quoteAuthor').textContent = `— ${data.author}`;
+      } else {
+        console.error('Quote API fetch error');
+      }
+    } catch(e) {
+      console.error('Quote fetch exception:', e);
+    }
+  }
+  window.addEventListener('load', loadQuote);
+</script>
+
+<script>
+// ====== Avataaars-based Face Avatar System ======
+const maleHairStyles = [
+  "ShortHairShortFlat",
+  "ShortHairSides",
+  "ShortHairTheCaesar",
+  "ShortHairFrizzle",
+  "ShortHairDreads01",
+  "ShortHairDreads02",
+  "NoHair"
+];
+
+const femaleHairStyles = [
+  "LongHairStraight",
+  "LongHairCurvy",
+  "LongHairNotTooLong",
+  "LongHairBun",
+  "LongHairFrida",
+  "LongHairBob",
+  "Hijab"
+];
+
+// Toggle the editor visibility
+function toggleAvatarEditor() {
+  const editor = document.getElementById('avatarEditor');
+  editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
+  if (editor.style.display === 'block') updateHairOptions();
+}
+
+// Populate hair options based on gender
+function updateHairOptions() {
+  const gender = document.getElementById('genderSelect').value;
+  const hairSelect = document.getElementById('hairSelect');
+  hairSelect.innerHTML = "";
+  const list = gender === "male" ? maleHairStyles : femaleHairStyles;
+  list.forEach(style => {
+    const opt = document.createElement("option");
+    opt.value = style;
+    opt.textContent = style.replace(/([A-Z])/g, ' $1');
+    hairSelect.appendChild(opt);
+  });
+  updateAvatarPreview();
+}
+
+// Build avatar preview URL
+function updateAvatarPreview() {
+  const hair = document.getElementById('hairSelect').value;
+  const hairColor = document.getElementById('hairColorSelect').value;
+  const skin = document.getElementById('skinSelect').value;
+  const face = document.getElementById('faceSelect').value;
+
+  let base = `https://avataaars.io/?avatarStyle=Circle&topType=${hair}&hairColor=${hairColor}&skinColor=${skin}`;
+  if (face === "Round") base += "&eyeType=Happy&mouthType=Smile";
+  else if (face === "Chiseled") base += "&eyeType=Squint&mouthType=Serious";
+  else if (face === "Oval") base += "&eyeType=Default&mouthType=Twinkle";
+
+  document.getElementById('avatarPreview').src = base;
+}
+
+// Auto-update preview when user changes options
+['genderSelect','hairSelect','hairColorSelect','skinSelect','faceSelect'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', ()=>{
+    if(id==='genderSelect') updateHairOptions();
+    else updateAvatarPreview();
+  });
+});
+
+// Load existing avatar from DB
+async function loadAvatar() {
+  const res = await fetch('/get_avatar');
+  const data = await res.json();
+  const defaultURL = `https://avataaars.io/?avatarStyle=Circle&topType=ShortHairShortFlat&hairColor=Brown&skinColor=Light`;
+  const avatarURL = data.avatar_url || defaultURL;
+  document.getElementById('userAvatar').src = avatarURL;
+  const topbar = document.getElementById('topbarAvatar');
+  if(topbar) topbar.src = avatarURL;
+  document.getElementById('avatarPreview').src = avatarURL;
+}
+
+// Save avatar to DB
+async function saveAvatar() {
+  const avatarURL = document.getElementById('avatarPreview').src;
+  const res = await fetch('/save_avatar', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ avatar_url: avatarURL })
+  });
+  const result = await res.json();
+  if (result.status === "success") {
+    document.getElementById('userAvatar').src = avatarURL;
+    const topbar = document.getElementById('topbarAvatar');
+    if(topbar) topbar.src = avatarURL;
+    alert("✅ Avatar updated successfully!");
+    toggleAvatarEditor();
+  } else {
+    alert("❌ Error saving avatar.");
+  }
+}
+
+window.addEventListener('load', loadAvatar);
+</script>
+
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.querySelector('.overlay').classList.toggle('show');
+}
+function showSection(id, el) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  toggleSidebar();
+  localStorage.setItem('lastDashboardSection', id);
+
+  // ✅ When Time Spent section opens, ensure chart draws properly
+  if (id === 'timespent') {
+    setTimeout(() => {
+      renderWeeklyChart(true);
+    }, 400);
+  }
+}
+
+// ========== TIME TRACKER SCRIPT ==========
+let totalSeconds = 0;
+let timerInterval = null;
+let lastSync = Date.now();
+
+// Load previously saved time
+async function loadExistingTime() {
+  const res = await fetch("/get_today_time");
+  const data = await res.json();
+  totalSeconds = data.seconds || 0;
+  displayTime();
+}
+
+// Start the timer
+function startTracking() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    totalSeconds++;
+    displayTime();
+    if (Date.now() - lastSync > 60000) {
+      syncTimeToServer(60);
+      lastSync = Date.now();
+    }
+  }, 1000);
+}
+
+// Stop and sync
+function stopTracking() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  syncTimeToServer(1);
+}
+
+// Update UI
+function displayTime() {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  document.getElementById("todayTime").textContent = `${h}h ${m}m ${s}s`;
+}
+
+// Send time to server
+async function syncTimeToServer(seconds = 60) {
+  await fetch("/update_time_spent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ seconds })
+  });
+}
+
+// Pause on tab hide, resume on show
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopTracking();
+  else startTracking();
+});
+
+window.addEventListener("beforeunload", stopTracking);
+
+window.addEventListener("load", async () => {
+  await loadExistingTime();
+  startTracking();
+
+  // ✅ Delay chart rendering until layout settles
+  setTimeout(() => {
+    renderWeeklyChart(true);
+  }, 700);
+
+  // ✅ Auto-refresh every 1 minute
+  setInterval(renderWeeklyChart, 60000);
+});
+
+async function renderWeeklyChart(forceResize = false) {
+  const res = await fetch("/get_weekly_time");
+  const data = await res.json();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const labels = [];
+  const values = [];
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dStr = d.toISOString().split('T')[0];
+    labels.push(days[d.getDay()]);
+    const found = data.find(x => x.date.startsWith(dStr));
+    values.push(found ? Math.round(found.seconds / 60) : 0);
+  }
+
+  const ctx = document.getElementById("weeklyChart");
+
+  // Destroy existing chart before creating new one
+  if (window.weeklyChartInstance) {
+    window.weeklyChartInstance.destroy();
+  }
+
+  window.weeklyChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Minutes Spent",
+        data: values,
+        backgroundColor: "rgba(0,150,136,0.85)",
+        borderRadius: 8,
+        hoverBackgroundColor: "rgba(0,150,136,1)"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: "nearest",
+        axis: "x",
+        intersect: false
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: "Minutes" },
+          ticks: {
+            stepSize: 10,
+            callback: (value) => Number.isInteger(value) ? value : null
+          },
+          suggestedMax: (() => {
+            const maxVal = Math.max(...values);
+            if (maxVal <= 60) return 60;
+            if (maxVal <= 120) return 120;
+            if (maxVal <= 240) return 240;
+            return Math.ceil(maxVal / 60) * 60;
+          })()
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: true,
+          usePointStyle: true,
+          backgroundColor: "rgba(0, 0, 0, 0.85)",
+          titleColor: "#fff",
+          bodyColor: "#fff",
+          displayColors: false,
+          callbacks: {
+            title: (items) => `📅 ${items[0].label}`,
+            label: (context) => {
+              const minutes = context.parsed.y;
+              const h = Math.floor(minutes / 60);
+              const m = minutes % 60;
+              if (h > 0) return `⏱ ${h}h ${m}m`;
+              return `⏱ ${m} min`;
+            }
+          }
+        }
+      },
+      animation: { duration: 600, easing: "easeOutQuart" }
+    }
+  });
+
+  // Ensure the tooltip layer and hover zone refresh correctly
+  ctx.style.pointerEvents = "auto";
+
+  if (forceResize) {
+    setTimeout(() => {
+      window.weeklyChartInstance.resize();
+    }, 400);
+  }
+}
+
+
+</script>
+
+<script>
+window.addEventListener('load', () => {
+  // Restore last visited dashboard section
+  const last = localStorage.getItem('lastDashboardSection') || 'home';
+  const sidebarLinks = document.querySelectorAll('.sidebar a');
+
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  const section = document.getElementById(last);
+  if (section) section.classList.add('active');
+
+  sidebarLinks.forEach(a => {
+    if (a.textContent.includes('🏠') && last === 'home') a.classList.add('active');
+    else if (a.getAttribute('onclick')?.includes(last)) a.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

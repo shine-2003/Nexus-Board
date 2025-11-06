@@ -1,0 +1,1256 @@
+/* ================================
+   BOARD PAGE – NexusBoard (Soft Teal Theme)
+   ================================ */
+html, body {
+  height: 100%;
+  overflow-y: auto; /* allow vertical scrolling */
+  overflow-x: hidden;
+}
+
+
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #e9fefc, #f7fffe);
+  color: #1e3a3a;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== Topbar ===== */
+.topbar {
+  background: #ffffffcc;
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 25px;
+  box-shadow: 0 2px 10px rgba(0, 128, 128, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #cde8e8;
+}
+
+/* Align logo beside toggle */
+.brand-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hamburger {
+  cursor: pointer;
+  font-size: 26px;
+  color: #009688;
+  user-select: none;
+  transition: 0.3s;
+}
+
+.hamburger:hover {
+  color: #00796b;
+  transform: scale(1.1);
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 20px;
+  color: #00796b;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actions span {
+  color: #1e3a3a;
+  font-weight: 500;
+}
+
+.actions span b {
+  color: #009688;
+}
+
+.actions a {
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(90deg, #009688, #4db6ac);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.actions a:hover {
+  background: linear-gradient(90deg, #4db6ac, #00796b);
+}
+
+/* ===== Sidebar (Final Working Scroll) ===== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0; /* Keep visible for test; JS toggles will adjust */
+  width: 220px;
+  height: 100vh;
+  background: #f0fdfa;
+  border-right: 1px solid #cde8e8;
+  box-shadow: 2px 0 10px rgba(0, 128, 128, 0.1);
+  transition: transform 0.4s ease-in-out;
+  padding-top: 80px;
+  z-index: 2000;
+
+  /* ✅ Enables independent scrolling */
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  /* ✅ Smooth scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: #cde8e8 transparent;
+}
+
+/* ✅ When sidebar is closed, slide it left */
+.sidebar:not(.open) {
+  transform: translateX(-240px);
+}
+
+/* ✅ Custom scrollbar for Chrome / Edge */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: #a8dadc;
+  border-radius: 4px;
+}
+
+/* Sidebar links styling remains same */
+.sidebar ul {
+  list-style: none;
+  padding: 0 0 40px 0; /* Add bottom padding to test scroll */
+}
+.sidebar ul li {
+  margin: 10px 0;
+}
+.sidebar ul a {
+  text-decoration: none;
+  color: #1e3a3a;
+  padding: 10px 20px;
+  display: block;
+  border-radius: 6px;
+  transition: 0.3s;
+  font-weight: 500;
+}
+.sidebar ul a:hover,
+.sidebar ul a.active {
+  background: #d0f0ef;
+  color: #009688;
+  border-left: 3px solid #4db6ac;
+}
+
+/* ===== Collapsible Sidebar Headings ===== */
+.sidebar-heading {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #00796b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #d0f0ef;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.3s;
+}
+
+.sidebar-heading:hover {
+  background: #d0f0ef;
+}
+
+/* ===== Submenu (collapsible list) ===== */
+.submenu {
+  display: none;
+  padding-left: 10px;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.submenu li a {
+  font-size: 14px;
+  padding: 8px 20px;
+  display: block;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+
+.submenu li a:hover,
+.submenu li a.active {
+  background: #d0f0ef;
+  color: #009688;
+}
+
+/* ===== Expanded submenu ===== */
+.submenu.open {
+  display: block;
+}
+
+/* Optional arrow rotation */
+.sidebar-heading.active::after {
+  content: "▲";
+  float: right;
+  color: #009688;
+}
+.sidebar-heading::after {
+  content: "▼";
+  float: right;
+  color: #00796b;
+}
+
+
+
+/* --- FIX: Prevent blank space when switching sections --- */
+.section {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  height: 0;
+  overflow: hidden;
+  position: relative;
+  padding-left: 250px;  /* ✅ offset sidebar */
+  padding-right: 50px;
+}
+
+.section.active {
+  display: block;
+  opacity: 1;
+  height: auto;
+  overflow: visible;
+}
+
+/* Override chatbot flex layout so it doesn’t affect other sections */
+#chatbot {
+  display: block !important;
+  height: auto !important;
+  min-height: auto !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+}
+
+/* Keep chatbot container centered independently */
+.chatbot-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  margin-top: 20px;
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Board Header ===== */
+.board-header {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #cde8e8;
+  box-shadow: 0 3px 12px rgba(0, 128, 128, 0.1);
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.board-header h1 {
+  color: #00796b;
+  margin: 0;
+}
+.board-header .quote {
+  color: #388e8e;
+  font-style: italic;
+}
+
+.member-list,
+.task-grid,
+.task-form,
+.history-list,
+#perfChart,
+.status-box {
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== Team Members ===== */
+.member-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-start;
+  padding-left: 15px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+.member-tag {
+  background: linear-gradient(90deg, #009688, #4db6ac);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 128, 128, 0.2);
+}
+
+.task-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;   /* Evenly space across the row */
+  gap: 30px 35px;                  /* consistent gaps */
+  padding: 20px 30px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.task-card {
+  width: 290px;                    /* 4 fit per row perfectly */
+}
+
+
+
+.task-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 128, 128, 0.18);
+}
+
+
+/* Ensure bottom padding doesn’t make them stick visually */
+.task-card:not(:last-child) {
+  margin-bottom: 15px;
+}
+
+
+/* Optional: Add a small shadow glow divider effect for rows */
+.task-grid::after {
+  content: "";
+  display: block;
+  height: 20px;
+}
+
+
+/* Subtle inner spacing for text clarity */
+.task-card h4 {
+  color: #00796b;
+  margin-bottom: 8px;
+}
+
+.task-card p {
+  color: #2f4f4f;
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+/* Smooth separation of buttons */
+.task-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.task-grid::before {
+  content: "";
+  display: block;
+  height: 5px;
+}
+
+.task-card {
+  border-radius: 16px;
+}
+
+.btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  color: white;
+  transition: 0.3s;
+}
+
+.btn.edit {
+  background: #26a69a;
+}
+.btn.edit:hover {
+  background: #00796b;
+}
+
+.btn.delete {
+  background: #ff5252;
+}
+.btn.delete:hover {
+  background: #e53935;
+}
+
+/* ===== Create Task ===== */
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #cde8e8;
+  box-shadow: 0 2px 10px rgba(0, 128, 128, 0.08);
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.task-form input,
+.task-form textarea,
+.task-form select {
+  background: #f4fdfc;
+  border: 1px solid #cde8e8;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 14px;
+  outline: none;
+  color: #1e3a3a;
+}
+
+.task-form input:focus,
+.task-form textarea:focus,
+.task-form select:focus {
+  border-color: #26a69a;
+  box-shadow: 0 0 8px rgba(38, 166, 154, 0.2);
+}
+
+.task-form button {
+  margin-top: 10px;
+  background: linear-gradient(90deg, #009688, #4db6ac);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.task-form button:hover {
+  background: linear-gradient(90deg, #4db6ac, #00796b);
+}
+
+/* ===== Filter Bar ===== */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+.filter-bar input,
+.filter-bar select {
+  padding: 8px;
+  border: 1px solid #cde8e8;
+  border-radius: 6px;
+  background: #f4fdfc;
+  font-size: 14px;
+  flex: 1;
+  color: #1e3a3a;
+}
+
+/* ===== Chart & Status ===== */
+#perfChart {
+  max-width: 600px;
+  margin: 30px auto;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #cde8e8;
+  box-shadow: 0 3px 10px rgba(0, 128, 128, 0.1);
+}
+
+.status-box {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #cde8e8;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 128, 128, 0.1);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.status-box strong {
+  color: #00796b;
+}
+
+/* ===== History Section ===== */
+.history-list {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #cde8e8;
+  box-shadow: 0 3px 10px rgba(0, 128, 128, 0.1);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.history-item {
+  border-left: 3px solid #009688;
+  padding-left: 12px;
+  margin-bottom: 12px;
+}
+
+.history-item small {
+  display: block;
+  color: #4b6f6f;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.history-item span {
+  color: #00796b;
+  font-weight: 600;
+}
+
+/* ==========================================================
+   CHATBOT SECTION STYLES — NexusBoard Gemini AI Assistant
+   ========================================================== */
+#chatbot {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: auto; /* changed from min-height to auto */
+  padding: 0;
+  margin: 0;
+}
+
+.chatbot-container {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 25px 20px;
+  width: 90%;
+  max-width: 850px;
+  margin: 20px auto;
+  border-top: 5px solid #007bff;
+}
+
+/* Titles and subtitle */
+.chatbot-container h2 {
+  color: #0072ff;
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 26px;
+}
+
+.chatbot-subtitle {
+  text-align: center;
+  color: #555;
+  margin-bottom: 15px;
+  font-size: 15px;
+  font-style: italic;
+}
+
+/* Chat layout */
+.chatbox {
+  display: flex;
+  flex-direction: column;
+  height: 420px;
+  border: 1px solid #d0e3ff;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fbff;
+}
+
+/* Scroll area */
+.chatlog {
+  flex: 1;
+  padding: 10px 12px;
+  overflow-y: auto;
+  background: #f4f9ff;
+  scrollbar-width: thin;
+  scrollbar-color: #b3d4ff transparent;
+}
+
+.chatlog::-webkit-scrollbar {
+  width: 6px;
+}
+.chatlog::-webkit-scrollbar-thumb {
+  background: #b3d4ff;
+  border-radius: 4px;
+}
+
+/* Messages */
+.user-msg,
+.bot-msg {
+  margin: 8px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  width: fit-content;
+  max-width: 75%;
+  word-wrap: break-word;
+  line-height: 1.4;
+  font-size: 15px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.user-msg {
+  background: linear-gradient(90deg, #0072ff, #00c6ff);
+  color: #fff;
+  align-self: flex-end;
+  box-shadow: 0 2px 4px rgba(0, 114, 255, 0.2);
+}
+
+.bot-msg {
+  background: #e3f2fd;
+  color: #0d47a1;
+  align-self: flex-start;
+  box-shadow: 0 2px 4px rgba(13, 71, 161, 0.15);
+}
+
+/* Input */
+.chat-input {
+  display: flex;
+  border-top: 1px solid #d0e3ff;
+  background: #ffffff;
+}
+
+.chat-input input {
+  flex: 1;
+  border: none;
+  padding: 12px;
+  font-size: 15px;
+  outline: none;
+  background: transparent;
+}
+
+.chat-input button {
+  border: none;
+  padding: 0 20px;
+  background: linear-gradient(90deg, #0072ff, #00c6ff);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.3s, transform 0.1s;
+  border-left: 1px solid #cce3ff;
+}
+
+.chat-input button:hover {
+  opacity: 0.85;
+  transform: scale(1.03);
+}
+
+.chat-input button:active {
+  transform: scale(0.98);
+}
+
+/* Group chat styles */
+.chat-box {
+  height: 400px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  color: #000;
+}
+.msg {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #e0f7fa;
+  color: #004d40;
+  max-width: 75%;
+  word-wrap: break-word;
+}
+.msg.self {
+  background: #007bff;
+  color: #fff;
+  margin-left: auto;
+  text-align: right;
+}
+.msg small {
+  opacity: 0.7;
+  display: block;
+  margin-top: 2px;
+}
+
+/* === FINAL FIX: Remove blank space from inactive sections === */
+
+/* Make sure only active sections take visual space */
+.section {
+  display: none !important;
+  opacity: 0;
+  height: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* When active, show it normally */
+.section.active {
+  display: block !important;
+  opacity: 1 !important;
+  height: auto !important;
+  overflow-y: auto !important;  /* ✅ allow scroll within sections */
+  padding: inherit !important;
+  margin: inherit !important;
+}
+
+
+/* Specifically prevent chatbot layout from affecting others */
+#chatbot:not(.active) {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.three-dot {
+  float: right;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 8px;
+  color: #007bff;
+}
+
+.msg-menu {
+  position: absolute;
+  right: 10px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+}
+.msg-menu button {
+  border: none;
+  background: none;
+  padding: 6px 12px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+.msg-menu button:hover {
+  background: #f2f2f2;
+}
+
+/* Ensure menu positions relative to each message */
+.msg {
+  position: relative;
+}
+
+/* Adjust 3-dot icon alignment */
+.three-dot {
+  float: right;
+  cursor: pointer;
+  font-weight: bold;
+  color: #007bff;
+  margin-left: 6px;
+  user-select: none;
+}
+
+.msg-menu {
+  position: absolute;
+  top: 20px;
+  right: 10px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+/* All headings gently aligned */
+.section h1,
+.section h2,
+.section h3,
+.section h4 {
+  margin-left: 15px;
+}
+
+.owner-controls{
+    margin-left: auto;
+  margin-right: auto;
+}
+
+.topbar-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 2px solid #009688;
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.user-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ====== TASK PRIORITY COLORS ====== */
+.task-important {
+  background: #ffe6e6;
+  border-left: 5px solid #ff3b3b;
+}
+.task-overdue {
+  background: #fff0e0;
+  border-left: 5px solid #ff9800;
+}
+.task-soon {
+  background: #fffde7;
+  border-left: 5px solid #ffeb3b;
+}
+.task-normal {
+  background: #e8f5e9;
+  border-left: 5px solid #4caf50;
+}
+.task-complete {
+  background: #e0f7fa;
+  border-left: 5px solid #26a69a;
+  opacity: 0.7;
+}
+
+/* ====== COMPLETED TASKS ====== */
+.completed-tasks {
+  background: #f9f9f9;
+  border: 1px solid #cde8e8;
+  border-radius: 10px;
+  padding: 15px;
+}
+.completed-item {
+  margin-bottom: 10px;
+  padding: 8px;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,128,128,0.1);
+}
+.completed-item strong {
+  color: #00796b;
+}
+
+/* ============================
+   🔧 SECTION ALIGNMENT FIXES
+   ============================ */
+
+/* --- General padding for all sections --- */
+.section {
+  padding-left: 260px !important;  /* offset for sidebar */
+  padding-right: 40px !important;
+}
+
+/* --- TASKS SECTION FIX --- */
+#tasks {
+  max-width: 95%;
+  margin: 0 auto;
+}
+
+#tasks h2 {
+  margin-left: 15px;
+}
+
+.filter-bar {
+  margin-left: 15px;
+  margin-right: 15px;
+}
+
+/* --- CREATE TASK SECTION FIX --- */
+#create {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+#create h2 {
+  text-align: center;
+  margin: 20px auto;
+  color: #00796b;
+}
+
+/* --- TEAM MEMBERS PAGE FIX --- */
+#members {
+  max-width: 95%;
+  margin: 0 auto;
+}
+
+#members .board-header {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#members #dailyQuote {
+  margin-left: 20px;
+}
+
+#members #quoteAuthor {
+  margin-left: 40px; /* aligns neatly under quote */
+  color: #555;
+  font-style: italic;
+}
+
+#members .owner-controls {
+  margin-left: 40px;
+  margin-top: 30px;
+}
+
+/* --- PERFORMANCE / STATUS / HISTORY FIX --- */
+#performance h2,
+#status h2,
+#history h2 {
+  margin-left: 40px;  /* moves title slightly right */
+  color: #00796b;
+}
+
+/* --- Quote block alignment --- */
+.quote-of-the-day {
+  margin-left: 20px;
+  padding-left: 10px;
+  border-left: 3px solid #4db6ac;
+}
+
+/* --- Completed tasks section fix --- */
+.completed-tasks {
+  max-width: 95%;
+  margin: 0 auto;
+}
+
+/* --- General heading refinement --- */
+.section h2 {
+  font-weight: 600;
+  color: #00796b;
+}
+
+/* --- Keep consistent inner paddings --- */
+.task-form,
+.member-list,
+.history-list {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- Extra subtle spacing for clarity --- */
+.task-grid {
+  margin: 0 auto;
+  max-width: 95%;
+}
+
+.export-btn {
+  background: linear-gradient(90deg, #009688, #4db6ac);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 15px;
+}
+.export-btn:hover {
+  background: linear-gradient(90deg, #4db6ac, #00796b);
+}
+
+/* ========== GROUP CHAT STYLES (from group_chat.html) ========== */
+.chat-container {
+  max-width: 800px;
+  margin: 30px auto;
+  background: #ece5dd;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.chat-header {
+  background: #075E54;
+  color: white;
+  padding: 15px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background: #efeae2;
+  display: flex;
+  flex-direction: column;
+}
+.chat-input {
+  display: flex;
+  border-top: 1px solid #cde8e8;
+  padding: 10px;
+  background: #f0f0f0;
+  border-radius: 0 0 12px 12px;
+}
+.chat-input input {
+  flex: 1;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 15px;
+  font-size: 15px;
+  outline: none;
+  background: white;
+}
+.chat-input button {
+  border: none;
+  background: #25D366;
+  color: white;
+  font-weight: 600;
+  padding: 10px 16px;
+  margin-left: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.chat-input button:hover {
+  background: #20b659;
+}
+.msg {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  position: relative;
+  max-width: 70%;
+  word-wrap: break-word;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.2s ease-in-out;
+}
+.msg.self {
+  background: #DCF8C6;
+  color: #000;
+  margin-left: auto;
+  text-align: right;
+}
+.msg.other {
+  background: white;
+  color: #000;
+  margin-right: auto;
+}
+.msg small {
+  font-size: 11px;
+  opacity: 0.6;
+  display: block;
+  margin-top: 2px;
+  text-align: right;
+}
+.msg .three-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #888;
+}
+.msg .three-dot:hover {
+  color: #333;
+}
+.msg-menu {
+  position: absolute;
+  right: 10px;
+  top: 25px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: none;
+  flex-direction: column;
+  z-index: 100;
+}
+.msg-menu button {
+  border: none;
+  background: none;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+.msg-menu button:hover {
+  background: #f0f0f0;
+}
+.chat-body::-webkit-scrollbar {
+  width: 6px;
+}
+.chat-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== ACTIVE MEMBERS ===== */
+.active-members {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 25px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+.active-members h3 {
+  font-size: 18px;
+  color: #0078d7;
+  margin-bottom: 10px;
+}
+.active-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.active-list li {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+.active-list li:last-child {
+  border-bottom: none;
+}
+.dot-online, .dot-offline {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+.dot-online { background-color: #27ae60; }
+.dot-offline { background-color: #95a5a6; }
+.status-text {
+  margin-left: auto;
+  font-size: 13px;
+  color: #555;
+}
+
+/* === ANALYTICS SECTION === */
+.analytics-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  width: 450px;
+}
+
+.chart-card h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.ai-summary {
+  background: #f4f8ff;
+  border-left: 5px solid #007bff;
+  padding: 15px;
+  border-radius: 8px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* === Refined Alignment Fix for Team Section === */
+#members {
+  padding-left: 40px;
+}
+
+/* Headings – consistent left alignment */
+#members h2,
+#members h3 {
+  margin-left: 10px;
+  text-align: left;
+}
+
+/* Team Member tags */
+#members .member-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 25px 10px;
+}
+
+/* Invite Member form */
+#members .invite-form {
+  margin-left: 10px;
+}
+
+/* Remove Member list */
+#members .remove-list {
+  list-style: none;
+  margin: 10px 0 0 10px;
+  padding: 0;
+}
+
+#members .remove-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+/* Active Members Section */
+#members .active-members {
+  margin-top: 25px;
+  margin-left: 10px;
+}
+
+#members .active-members ul {
+  list-style: none;
+  margin: 8px 0 0 10px;
+  padding: 0;
+}
+
+#members .active-members li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+/* Status dots inside active members */
+.dot-online {
+  height: 10px;
+  width: 10px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-offline {
+  height: 10px;
+  width: 10px;
+  background-color: #ccc;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-text {
+  font-size: 0.9em;
+  color: #666;
+}
+
+

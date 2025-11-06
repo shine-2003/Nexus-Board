@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ board.name }} | NexusBoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='board.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+<header class="topbar">
+  <div class="brand-area">
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
+    <div class="brand">{{ board.name }}</div>
+  </div>
+
+  <div class="actions">
+    <a href="{{ url_for('dashboard') }}">🏠 Dashboard</a>
+
+    <div class="user-info">
+      <img id="topbarAvatar" class="topbar-avatar" src="" alt="User Avatar">
+      <span>👋 Hello, <b>{{ user.username }}</b></span>
+    </div>
+
+    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+  </div>
+</header>
+
+
+<!-- ==================== SIDEBAR ==================== -->
+<nav id="sidebar" class="sidebar">
+  <ul>
+    <!-- 🌟 MAIN SECTION -->
+    <li>
+      <div class="sidebar-heading collapsible" onclick="toggleSubmenu(this)">Main</div>
+      <ul class="submenu">
+        <li><a href="{{ url_for('dashboard') }}">🏠 Dashboard</a></li>
+        <li><a href="#" onclick="showSection('tasks', this)">📋 Tasks</a></li>
+        <li><a href="#" onclick="showSection('create', this)">📝 Create Task</a></li>
+      </ul>
+    </li>
+
+    <!-- 👥 TEAM & COLLABORATION -->
+    <li>
+      <div class="sidebar-heading collapsible" onclick="toggleSubmenu(this)">Team & Collaboration</div>
+      <ul class="submenu">
+        <li><a href="#" onclick="showSection('members', this)">👥 Team Members</a></li>
+        <li><a href="#" onclick="showSection('groupchat', this)">💭 Group Chat</a></li>
+        <li><a href="#" onclick="showSection('chatbot', this)">💬 Chatbot</a></li>
+      </ul>
+    </li>
+
+    <!-- 📊 ANALYTICS & TRACKING -->
+    <li>
+      <div class="sidebar-heading collapsible" onclick="toggleSubmenu(this)">Analytics</div>
+      <ul class="submenu">
+        <li><a href="#" onclick="showSection('performance', this)">📊 Performance</a></li>
+        <li><a href="#" onclick="showSection('status', this)">📈 % Completion</a></li>
+        <li><a href="#" onclick="showSection('history', this)">🕓 History</a></li>
+        <li><a href="#" onclick="showSection('analytics', this)">📈 Project Analytics</a></li>
+      </ul>
+    </li>
+
+    <!-- ⚙️ SETTINGS & LOGOUT -->
+    <li>
+      <div class="sidebar-heading collapsible" onclick="toggleSubmenu(this)">System</div>
+      <ul class="submenu">
+        <li><a href="{{ url_for('logout') }}">🚪 Logout</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="content">
+
+        <section id="chatbot" class="section">
+      <div class="chatbot-container">
+        <h2>💬 NexusBoard Chatbot (Gemini AI)</h2>
+        <p class="chatbot-subtitle">Ask anything about your tasks, team, or progress!</p>
+
+        <div class="chatbox">
+          <div id="chatLog" class="chatlog">
+            <div class="bot-msg">Hello {{ user.username }}! 👋 How can I assist you today?</div>
+          </div>
+          <div class="chat-input">
+            <input id="chatInput" type="text" placeholder="Type your message..." autocomplete="off">
+            <button id="chatSend">Send</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+<section id="groupchat" class="section">
+  <div class="chat-container">
+    <div class="chat-header">
+      <h3>💬 Board Group Chat</h3>
+    </div>
+    <div id="groupChatBody" class="chat-body"></div>
+    <div class="chat-input">
+      <input id="groupChatInput" type="text" placeholder="Type a message..." autocomplete="off">
+      <button id="groupSendBtn">Send</button>
+    </div>
+  </div>
+</section>
+
+
+    <!-- ===== TEAM MEMBERS SECTION ===== -->
+    <section id="members" class="section active">
+
+      <div class="board-header">
+        <h1>{{ board.name }}</h1>
+        <p class="owner">Team Head: <b>{{ board.owner_name }}</b></p>
+        <div class="quote-of-the-day">
+          <blockquote id="dailyQuote">Loading quote...</blockquote>
+          <p id="quoteAuthor"></p>
+         </div>
+      </div>
+
+      <h2>👥 Team Members</h2>
+
+      <div class="member-list">
+        {% for m in members %}
+          <span class="member-tag">{{ m.username }}</span>
+        {% endfor %}
+      </div>
+
+      {% if user.id == board.owner_id %}
+      <div class="owner-controls" style="margin-top: 30px;">
+        <h3>🔗 Invite Member</h3>
+        <form method="POST" action="{{ url_for('invite_member', board_id=board.id) }}" 
+              class="invite-form" style="margin-bottom:20px;">
+          <input type="email" name="email" 
+                 placeholder="Enter member's email" 
+                 required 
+                 style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+          <button type="submit" 
+                  style="background:linear-gradient(90deg,#0072ff,#00c6ff);
+                         color:#fff;border:none;
+                         padding:8px 14px;border-radius:6px;cursor:pointer;">
+            Invite
+          </button>
+        </form>
+
+        <h3>❌ Remove Member</h3>
+        <ul class="remove-list" style="list-style:none; padding:0;">
+          {% for m in members %}
+            {% if m.id != board.owner_id %}
+            <li style="margin-bottom:8px;">
+              {{ m.username }}
+              <a href="{{ url_for('remove_member', board_id=board.id, user_id=m.id) }}"
+                 onclick="return confirm('Remove {{ m.username }} from this board?')"
+                 style="color:#ff4b5c; margin-left:10px; text-decoration:none; font-weight:bold;">
+                Remove
+              </a>
+            </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if user.id == board.owner_id %}
+<div class="active-members">
+  <h3>🟢 Active Members (Live)</h3>
+  <ul id="activeList" class="active-list">
+    <li>Loading active members...</li>
+  </ul>
+</div>
+{% endif %}
+
+    </section>
+
+<!-- ===== ANALYTICS SECTION ===== -->
+<section id="analytics" class="section">
+  <h2>📊 Project Analytics ({{ board.name }})</h2>
+
+  <div class="analytics-container">
+    <div class="chart-card">
+      <h3>🥧 Delay Risk Breakdown</h3>
+      <canvas id="riskPieChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>📈 Task Lifecycle Trend</h3>
+      <canvas id="lifecycleLineChart"></canvas>
+    </div>
+  </div>
+
+  <hr style="margin: 30px 0;">
+
+  <div class="ai-summary">
+    <h3>🤖 AI Insights Summary</h3>
+    <p id="aiInsights">Loading insights...</p>
+  </div>
+</section>
+
+    <!-- ===== TASKS SECTION ===== -->
+    <section id="tasks" class="section">
+
+      <h2>📋 Tasks in {{ board.name }}</h2>
+
+      <div class="filter-bar">
+        <input type="text" id="taskSearch" placeholder="🔍 Search by task name...">
+        <select id="memberFilter">
+          <option value="">All Members</option>
+          {% for m in members %}
+            <option value="{{ m.username }}">{{ m.username }}</option>
+          {% endfor %}
+        </select>
+        <button id="exportBtn" class="export-btn">📄 Export to PDF</button>
+      </div>
+
+      {% if tasks %}
+        <div id="task-grid" class="task-grid">
+          {% for t in tasks %}
+            {% set color_class = '' %}
+            {% if t.progress_percent == 100 %}
+              {% set color_class = 'task-complete' %}
+            {% elif t.important %}
+              {% set color_class = 'task-important' %}
+            {% elif t.due_date %}
+              {% set days_left = (t.due_date - now()).days %}
+              {% if days_left <= 0 %}
+                {% set color_class = 'task-overdue' %}
+              {% elif days_left <= 3 %}
+                {% set color_class = 'task-soon' %}
+              {% else %}
+                {% set color_class = 'task-normal' %}
+              {% endif %}
+            {% endif %}
+            <div class="task-card {{ color_class }}" data-task-id="{{ t.id }}" data-member="{{ t.assigned_name or '' }}">
+
+              <h4>{{ t.name }}</h4>
+              <p>{{ t.description or 'No description provided.' }}</p>
+              <p><strong>Assigned:</strong> {{ t.assigned_name or 'Unassigned' }}</p>
+              <p><strong>Progress:</strong> {{ t.progress_percent or 0 }}%</p>
+              <p><strong>Comments:</strong> {{ t.comments or 'No comments' }}</p>
+              <small>Created: {{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+              {% if t.due_date %}
+                <small> • Due: {{ t.due_date.strftime('%Y-%m-%d %H:%M') }}</small>
+              {% endif %}
+              <div class="task-actions">
+                <a href="{{ url_for('edit_task', task_id=t.id) }}" class="btn edit">Edit</a>
+                <a href="{{ url_for('delete_task', task_id=t.id) }}" 
+                   class="btn delete" 
+                   onclick="return confirm('Delete task?')">Delete</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">No tasks yet.</p>
+      {% endif %}
+
+      <hr style="margin:30px 0;">
+<h3>✅ Completed Tasks</h3>
+{% if completed %}
+  <div class="completed-tasks">
+    {% for c in completed %}
+      <div class="completed-item">
+        <strong>{{ c.name }}</strong> — Completed by {{ c.completed_by or 'Unknown' }}
+        <small>on {{ c.completed_date.strftime('%Y-%m-%d %H:%M') }}</small>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>No completed tasks yet.</p>
+{% endif %}
+
+    </section>
+
+
+    <!-- ===== CREATE TASK SECTION ===== -->
+    <section id="create" class="section">
+
+      <div class="task-form-wrapper">
+
+        <h2>📝 Create New Task</h2>
+
+        <form method="POST" 
+              action="{{ url_for('add_task', board_id=board.id) }}" 
+              class="task-form">
+
+          <label>Task Name</label>
+          <input type="text" name="name" required>
+
+          <label>Description</label>
+          <textarea name="description" required></textarea>
+
+          <label>Assign To</label>
+          <select name="assigned_to" required>
+            <option value="">-- Select Member --</option>
+            {% for m in members %}
+              <option value="{{ m.id }}">{{ m.username }}</option>
+            {% endfor %}
+          </select>
+
+          <label>Comments</label>
+          <textarea name="comments"></textarea>
+
+          <label>End Date</label>
+          <input type="datetime-local" name="due_date" required>
+
+          <button type="submit">Create Task</button>
+
+        </form>
+
+      </div>
+    </section>
+
+
+    <!-- ===== PERFORMANCE SECTION ===== -->
+    <section id="performance" class="section">
+      <h2>📊 Team Performance</h2>
+      <!-- wrap canvas in a white card so chart appears on white background (requested) -->
+      <div id="perfChartWrap" style="max-width:600px;margin:30px auto;background:#ffffff;border-radius:8px;padding:10px;box-shadow:0 3px 10px rgba(0,0,0,0.05);">
+        <canvas id="perfChart"></canvas>
+      </div>
+    </section>
+
+
+    <!-- ===== PROJECT STATUS SECTION ===== -->
+    <section id="status" class="section">
+      <h2>📈 Project Completion</h2>
+      <div class="status-box">
+        <h3>{{ board.name }}</h3>
+        <p>Overall Completion: <strong id="overallPercent"></strong>%</p>
+        <progress id="overallBar" max="100" value="0"></progress>
+      </div>
+    </section>
+
+
+    <!-- ===== HISTORY SECTION ===== -->
+    <section id="history" class="section">
+
+      <h2>🕓 Board History</h2>
+
+      <div id="historyList" class="history-list">
+        <p>Loading history...</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== SCRIPTS ==================== -->
+<script>
+  // small error logger to capture runtime errors in console
+  window.onerror = function(message, source, lineno, colno, err) {
+    console.error('Window.onerror:', message, 'at', source + ':' + lineno + ':' + colno, err);
+  };
+
+  function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    if (sb) sb.classList.toggle('open');
+  }
+
+  function showSection(id, el) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    const sec = document.getElementById(id);
+    if (sec) sec.classList.add('active');
+    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+    if (el) el.classList.add('active');
+    const sb = document.getElementById('sidebar');
+    if (sb) sb.classList.remove('open');
+    try { localStorage.setItem('lastBoardSection', id); } catch (_) {}
+    if (id === 'performance') loadCharts();
+    if (id === 'status') loadOverall();
+    if (id === 'history') loadHistory();
+    if (id === 'analytics') loadAnalytics();
+
+  }
+
+  // safely parse tojson-injected data
+  function safeParseJSON(str, fallback) {
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  // boardId injected safely as number below
+  const boardId = JSON.parse('{{ board.id | tojson | safe }}');
+
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const last = (() => { try { return localStorage.getItem('lastBoardSection'); } catch (e) { return null; } })();
+    if (last && document.getElementById(last)) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(last).classList.add('active');
+      if (last === 'history') loadHistory();
+    }
+
+    // ----- Search & Filter -----
+    const search = document.getElementById('taskSearch');
+    const filter = document.getElementById('memberFilter');
+
+    function applyFilter() {
+      const tasks = document.querySelectorAll('.task-card');
+      const term = (search?.value || '').toLowerCase();
+      const member = filter?.value || '';
+      tasks.forEach(t => {
+        const h = t.querySelector('h4');
+        const name = h ? h.innerText.toLowerCase() : '';
+        const assigned = t.dataset.member || '';
+        const show = name.includes(term) && (!member || assigned === member);
+        t.style.display = show ? 'block' : 'none';
+      });
+    }
+
+    if (search) search.addEventListener('input', applyFilter);
+    if (filter) filter.addEventListener('change', applyFilter);
+
+    // ----- Drag & Drop -----
+    const grid = document.getElementById('task-grid');
+    if (grid && typeof Sortable !== "undefined") {
+      new Sortable(grid, {
+        animation: 150,
+        ghostClass: 'drag-ghost',
+        onEnd: async evt => {
+          try {
+            const order = Array.from(grid.children).map(el => parseInt(el.dataset.taskId));
+            const movedTask = evt.item?.querySelector('h4')?.innerText || '';
+            if (!confirm(`Move "${movedTask}" to position ${evt.newIndex + 1}?`)) return;
+            const res = await fetch(`/update_task_order/${boardId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ordered_ids: order })
+            });
+            if (!res.ok) {
+              console.error('Order update failed status', res.status);
+              alert('Could not update order — server error. See console.');
+            }
+          } catch (e) {
+            console.error('update order failed', e);
+            alert('Could not update order — check console.');
+          }
+        }
+      });
+    }
+  });
+
+  // ---------- PERFORMANCE CHART ----------
+  function loadCharts() {
+    const ctx = document.getElementById('perfChart');
+    if (!ctx) return;
+
+    // members/tasks are injected by server; parse safely
+    let members = [];
+    let tasks = [];
+    try {
+      members = JSON.parse(`{{ members|tojson|safe }}`) || [];
+    } catch (e) { members = []; }
+    try {
+      tasks = JSON.parse(`{{ tasks|tojson|safe }}`) || [];
+    } catch (e) { tasks = []; }
+
+    const data = {};
+    tasks.forEach(t => {
+      if (!t.assigned_name) return;
+      if (!data[t.assigned_name]) data[t.assigned_name] = [];
+      data[t.assigned_name].push(t.progress_percent || 0);
+    });
+
+    const labels = Object.keys(data);
+    const avg = labels.map(k => {
+      const arr = data[k];
+      return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+    });
+
+    // Destroy previous chart instance if exists to avoid Chart.js errors
+    if (ctx._chartInstance) {
+      try { ctx._chartInstance.destroy(); } catch (_) {}
+    }
+
+    // use a contrasting color inside white card (white background requested)
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Avg % Completed',
+          data: avg,
+          backgroundColor: labels.map(() => 'rgba(54,162,235,0.85)'), // inner color
+          borderColor: labels.map(() => '#1976d2'),
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          x: { beginAtZero: true },
+          y: { beginAtZero: true, max:100 }
+        },
+        plugins: { legend: { display: true } }
+      }
+    });
+
+    // keep reference to destroy later if needed
+    ctx._chartInstance = chart;
+  }
+
+  // ---------- OVERALL COMPLETION ----------
+  function loadOverall() {
+    let tasks = [];
+    try { tasks = JSON.parse(`{{ tasks|tojson|safe }}`) || []; } catch (e) { tasks = []; }
+    if (!tasks.length) return;
+    const total = tasks.length;
+    const done = tasks.reduce((a,b)=>a+(b.progress_percent||0),0);
+    const avg = total ? (done/total).toFixed(1) : 0;
+    const percent = document.getElementById('overallPercent');
+    const bar = document.getElementById('overallBar');
+    if (percent) percent.innerText = avg;
+    if (bar) bar.value = avg;
+  }
+
+  // ---------- HISTORY LOADER ----------
+  async function loadHistory() {
+    const list = document.getElementById('historyList');
+    if (!list) return;
+    list.innerHTML = '<p>Loading...</p>';
+    try {
+      const res = await fetch('/history/' + boardId, { credentials: 'same-origin' });
+      if (!res.ok) {
+        list.innerHTML = '<p class="error">Unable to load history (server returned ' + res.status + ').</p>';
+        return;
+      }
+      const html = await res.text();
+      // server should return the partial HTML fragment from templates/history.html
+      list.innerHTML = html || '<p>No history available.</p>';
+
+      // attach delete handlers to any delete buttons
+      const buttons = list.querySelectorAll('.delete-history');
+      buttons.forEach(btn => {
+        // remove old listeners by cloning
+        const n = btn.cloneNode(true);
+        btn.parentNode.replaceChild(n, btn);
+        n.addEventListener('click', async (ev) => {
+          ev.preventDefault();
+          if (!confirm('Delete this history log?')) return;
+          const id = n.dataset.id;
+          try {
+            const dres = await fetch('/delete_history/' + id, { method: 'POST', credentials: 'same-origin' });
+            if (dres.ok) {
+              // notify server emits are handled in backend; reload local view
+              await loadHistory();
+            } else {
+              alert('Failed to delete history (server error).');
+            }
+          } catch (e) {
+            console.error('Delete history failed', e);
+            alert('Error deleting history.');
+          }
+        });
+      });
+
+    } catch (err) {
+      console.error('History fetch failed', err);
+      list.innerHTML = '<p class="error">Error loading history. Check console for details.</p>';
+    }
+  }
+
+  // ---------- LIVE PARTIAL LOADERS (tasks/members) ----------
+  // These fetch the board page HTML and extract the partials, so backend doesn't need new endpoints.
+  async function loadTasks() {
+    try {
+      const res = await fetch('/board/' + boardId, { credentials: 'same-origin' });
+      if (!res.ok) { console.error('loadTasks fetch failed', res.status); return; }
+      const text = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      const newGrid = doc.getElementById('task-grid');
+      const oldGrid = document.getElementById('task-grid');
+      if (newGrid && oldGrid) {
+        oldGrid.innerHTML = newGrid.innerHTML;
+        // reattach drag & drop by re-initializing Sortable
+        if (typeof Sortable !== "undefined") {
+          try {
+            // destroy existing by replacing element (simpler)
+            const parent = oldGrid.parentNode;
+            const copy = oldGrid.cloneNode(true);
+            parent.replaceChild(copy, oldGrid);
+            // re-run sortable on the new element
+            new Sortable(copy, {
+              animation: 150,
+              ghostClass: 'drag-ghost',
+              onEnd: async evt => {
+                try {
+                  const order = Array.from(copy.children).map(el => parseInt(el.dataset.taskId));
+                  const movedTask = evt.item?.querySelector('h4')?.innerText || '';
+                  if (!confirm(`Move "${movedTask}" to position ${evt.newIndex + 1}?`)) return;
+                  await fetch(`/update_task_order/${boardId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ordered_ids: order })
+                  });
+                } catch (e) { console.error('re-init update order failed', e); }
+              }
+            });
+          } catch (e) { console.warn('re-init sortable failed', e); }
+        }
+      }
+    } catch (e) {
+      console.error('loadTasks error', e);
+    }
+  }
+
+  async function loadMembers() {
+    try {
+      const res = await fetch('/board/' + boardId, { credentials: 'same-origin' });
+      if (!res.ok) { console.error('loadMembers fetch failed', res.status); return; }
+      const text = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      const newMembers = doc.querySelector('.member-list');
+      const oldMembers = document.querySelector('.member-list');
+      if (newMembers && oldMembers) {
+        oldMembers.innerHTML = newMembers.innerHTML;
+      }
+    } catch (e) {
+      console.error('loadMembers error', e);
+    }
+  }
+</script>
+
+<script>
+document.getElementById("exportBtn").addEventListener("click", function() {
+  window.location.href = "{{ url_for('export_tasks_pdf', board_id=board.id) }}";
+});
+</script>
+
+<script>
+async function loadTopbarAvatar() {
+  try {
+    const res = await fetch("/get_avatar");
+    if (res.ok) {
+      const data = await res.json();
+      const avatarUrl = data.avatar_url || 
+        `https://avataaars.io/?avatarStyle=Circle&topType=ShortHairShortFlat&hairColor=Brown&skinColor=Light`;
+      document.getElementById("topbarAvatar").src = avatarUrl;
+    }
+  } catch (err) {
+    console.error("Avatar fetch failed:", err);
+  }
+}
+
+window.addEventListener("load", loadTopbarAvatar);
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const sendBtn = document.getElementById("chatSend");
+  const input = document.getElementById("chatInput");
+  const log = document.getElementById("chatLog");
+
+  async function sendMessage() {
+    const msg = input.value.trim();
+    if (!msg) return;
+    const userMsg = document.createElement("div");
+    userMsg.className = "user-msg";
+    userMsg.textContent = msg;
+    log.appendChild(userMsg);
+    input.value = "";
+
+    const botMsg = document.createElement("div");
+    botMsg.className = "bot-msg";
+    botMsg.textContent = "Thinking...";
+    log.appendChild(botMsg);
+    log.scrollTop = log.scrollHeight;
+
+    try {
+      const res = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await res.json();
+      botMsg.textContent = data.reply || "I'm not sure about that.";
+    } catch (err) {
+      botMsg.textContent = "⚠️ Error: unable to reach chatbot server.";
+      console.error(err);
+    }
+    log.scrollTop = log.scrollHeight;
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  input.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
+});
+</script>
+
+<!-- Socket.IO script -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  (function(){
+    try {
+      window.socket = io(); // default path
+      // join board-specific room
+      if (socket && typeof socket.emit === 'function') {
+        socket.emit('join_board', { board_id: boardId });
+      }
+      socket.on('connect', () => { console.log('Socket connected'); });
+
+      // history updates (already implemented server-side)
+      socket.on('history_update', data => {
+        try {
+          if (data && data.board_id === boardId) {
+            // realtime update without full page reload
+            loadHistory();
+          }
+        } catch (e) { console.error('history_update handler error', e); }
+      });
+
+      // task updates: add/edit/delete/reorder
+      socket.on('task_update', data => {
+        try {
+          if (data && data.board_id === boardId) {
+            // fetch and replace task list DOM (keeps page state and does not reload entire page)
+            loadTasks();
+            // also update charts/overall since task changes may affect them
+            loadCharts();
+            loadOverall();
+          }
+        } catch (e) { console.error('task_update handler error', e); }
+      });
+
+      // member updates: invite/remove
+      socket.on('member_update', data => {
+        try {
+          if (data && data.board_id === boardId) {
+            loadMembers();
+          }
+        } catch (e) { console.error('member_update handler error', e); }
+      });
+
+      // progress updates: only update charts & overall
+      socket.on('progress_update', data => {
+        try {
+          if (data && data.board_id === boardId) {
+            loadCharts();
+            loadOverall();
+          }
+        } catch (e) { console.error('progress_update handler error', e); }
+      });
+
+      window.addEventListener('beforeunload', () => {
+        try { socket.emit('leave_board', { board_id: boardId }); } catch(_) {}
+      });
+    } catch (e) {
+      console.error('Socket init error', e);
+    }
+  })();
+</script>
+
+<script>
+function loadAnalytics() {
+  let tasks = [];
+  try {
+    tasks = JSON.parse(`{{ tasks|tojson|safe }}`) || [];
+  } catch (e) {
+    console.error("Task JSON parse error", e);
+    return;
+  }
+
+  // --- PIE CHART: Delay Risk Breakdown ---
+  const pieCtx = document.getElementById("riskPieChart");
+  if (pieCtx) {
+    let onTrack = 0, atRisk = 0, delayed = 0;
+    const now = new Date();
+
+    tasks.forEach(t => {
+      if (!t.due_date) return;
+      const due = new Date(t.due_date);
+      const diffDays = (due - now) / (1000 * 60 * 60 * 24);
+      if (t.progress_percent === 100) return; // completed tasks not risky
+      if (diffDays < 0) delayed++;
+      else if (diffDays <= 1) atRisk++;
+      else onTrack++;
+    });
+
+    new Chart(pieCtx, {
+      type: 'pie',
+      data: {
+        labels: ['✅ On Track', '⚠️ At Risk', '❌ Delayed'],
+        datasets: [{
+          data: [onTrack, atRisk, delayed],
+          backgroundColor: ['#4caf50', '#ffc107', '#f44336']
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+
+  // --- LINE CHART: Task Lifecycle Trend (based on created/completed) ---
+  const lineCtx = document.getElementById("lifecycleLineChart");
+  if (lineCtx) {
+    const dateMap = {};
+
+    tasks.forEach(t => {
+      const cdate = t.created_at ? new Date(t.created_at).toISOString().split('T')[0] : null;
+      if (cdate) dateMap[cdate] = (dateMap[cdate] || 0) + 1;
+    });
+
+    const labels = Object.keys(dateMap).sort();
+    const values = labels.map(d => dateMap[d]);
+
+    new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Tasks Created Over Time',
+          data: values,
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0,123,255,0.2)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // --- AI INSIGHTS (simple summary logic) ---
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.progress_percent === 100).length;
+  const delayed = tasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.progress_percent < 100).length;
+
+  const percent = total ? ((completed / total) * 100).toFixed(1) : 0;
+  const insightText = `
+    ${delayed} tasks may delay. 
+    Completion rate is currently ${percent}%.
+    ${percent > 80 ? "🎉 Excellent progress! Keep it up." :
+      percent > 50 ? "⚡ Good momentum — aim for faster closures." :
+      "🕓 Many tasks pending. Try to focus on priorities."}
+  `;
+  document.getElementById("aiInsights").innerText = insightText.trim();
+}
+</script>
+
+<script>
+function toggleSubmenu(element) {
+  element.classList.toggle('active');
+  const submenu = element.nextElementSibling;
+  submenu.classList.toggle('open');
+}
+</script>
+
+<script>
+  async function loadQuote() {
+    try {
+      const res = await fetch('/get_daily_quote');
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('dailyQuote').textContent = `"${data.quote}"`;
+        document.getElementById('quoteAuthor').textContent = `— ${data.author}`;
+      } else {
+        console.error('Quote API fetch error');
+      }
+    } catch(e) {
+      console.error('Quote fetch exception:', e);
+    }
+  }
+  window.addEventListener('load', loadQuote);
+</script>
+
+<script>
+  // ========== GROUP CHAT SOCKET LOGIC (fixed IDs) ==========
+  (() => {
+    const socket = io();
+    const userId = JSON.parse('{{ user.id | tojson | safe }}');
+    const username = "{{ user.username }}";
+    const boardId = JSON.parse('{{ board.id | tojson | safe }}');
+
+    const chatBody = document.getElementById('groupChatBody');
+    const input = document.getElementById('groupChatInput');
+    const sendBtn = document.getElementById('groupSendBtn');
+
+    function scrollToBottom() {
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function renderMessage(m) {
+      const div = document.createElement('div');
+      div.classList.add('msg');
+      div.dataset.id = m.id;
+      if (m.sender_id === userId) div.classList.add('self');
+      else div.classList.add('other');
+
+      div.innerHTML = `
+        <span>${m.message}</span>
+        <small>${m.sender_name} • ${m.sent_at}</small>
+        <span class="three-dot">⋮</span>
+        <div class="msg-menu"></div>
+      `;
+      chatBody.appendChild(div);
+      attachMenu(div, m);
+      scrollToBottom();
+    }
+
+    function attachMenu(div, m) {
+      const dot = div.querySelector('.three-dot');
+      const menu = div.querySelector('.msg-menu');
+      if (!dot || !menu) return;
+      menu.innerHTML = '';
+      if (m.sender_id === userId) {
+        menu.innerHTML = `
+          <button onclick="editMessage(${m.id})">✏️ Edit</button>
+          <button onclick="deleteMessage(${m.id}, false)">🗑 Delete for Me</button>
+          <button onclick="deleteMessage(${m.id}, true)">🚫 Delete for Everyone</button>
+        `;
+      } else {
+        menu.innerHTML = `<button onclick="deleteMessage(${m.id}, false)">🗑 Delete for Me</button>`;
+      }
+      dot.onclick = (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.msg-menu').forEach(mn => mn.style.display='none');
+        menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+      };
+    }
+
+    document.body.addEventListener('click', () => {
+      document.querySelectorAll('.msg-menu').forEach(mn => mn.style.display='none');
+    });
+
+    async function loadMessages() {
+      const res = await fetch(`/messages/${boardId}`);
+      const data = await res.json();
+      chatBody.innerHTML = '';
+      data.forEach(renderMessage);
+      scrollToBottom();
+    }
+
+    loadMessages();
+
+    sendBtn.onclick = () => {
+      const msg = input.value.trim();
+      if (!msg) return;
+      socket.emit('send_message', { board_id: boardId, message: msg });
+      input.value = '';
+    };
+
+    window.editMessage = (id) => {
+      const div = document.querySelector(`.msg[data-id='${id}']`);
+      if (!div) return;
+      const old = div.querySelector('span').innerText;
+      const newText = prompt('Edit message:', old);
+      if (newText && newText.trim() && newText !== old)
+        socket.emit('edit_message', { message_id: id, new_text: newText, board_id: boardId });
+    };
+
+    window.deleteMessage = (id, forAll=false) => {
+      socket.emit('delete_message', { message_id: id, board_id: boardId, for_all: forAll });
+    };
+
+    socket.on('new_message', m => {
+      if (m.board_id && m.board_id != boardId) return;
+      renderMessage(m);
+    });
+
+    socket.on('delete_message_all', d => {
+      const el = document.querySelector(`.msg[data-id='${d.id}']`);
+      if (el) el.remove();
+    });
+
+    socket.on('delete_message_self', d => {
+      const el = document.querySelector(`.msg[data-id='${d.id}']`);
+      if (el) el.remove();
+    });
+
+    socket.on('edit_message', d => {
+      const el = document.querySelector(`.msg[data-id='${d.id}'] span`);
+      if (el) el.innerText = d.new_text + " ✏️";
+    });
+
+    socket.emit('join_board', { board_id: boardId });
+  })();
+
+// ========== ACTIVE MEMBERS TRACKER (FIXED VERSION) ==========
+(() => {
+  // Use already-declared socket and boardId safely
+  const isOwner = JSON.parse('{{ (user.id == board.owner_id) | tojson }}');
+  const bId = JSON.parse('{{ board.id | tojson }}');  // renamed to avoid redeclaration
+
+  if (!window.socket || !isOwner) return;
+
+  const activeList = document.getElementById('activeList');
+  if (!activeList) return;
+
+  window.socket.emit('get_active_members', { board_id: bId });
+
+  window.socket.on('active_members_update', data => {
+    if (!data || data.board_id !== bId) return;
+    activeList.innerHTML = '';
+    if (!data.members?.length) {
+      activeList.innerHTML = '<li>No active members currently.</li>';
+      return;
+    }
+    data.members.forEach(m => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span class="${m.is_online ? 'dot-online' : 'dot-offline'}"></span>
+        <b>${m.username}</b>
+        ${m.is_online
+          ? '<span class="status-text">Online</span>'
+          : `<span class="status-text">Last seen ${m.last_active}</span>`}`;
+      activeList.appendChild(li);
+    });
+  });
+
+  // Emit heartbeat every 30 seconds
+  setInterval(() => {
+    try { window.socket.emit('user_active', { board_id: bId }); } catch (_) {}
+  }, 30000);
+})();
+
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+flask
+flask-socketio
+flask-login
+psycopg2-binary
+requests
+reportlab
+google-generativeai
+python-dotenv

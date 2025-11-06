@@ -1,0 +1,194 @@
+/* ============================================================
+   🌿 NexusBoard - Edit Page Styling (Boards & Tasks)
+   Unified Mint–Teal Theme with Smooth Animations
+   ============================================================ */
+
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #e0f7f4, #d0faf6, #f5fffe);
+  color: #1e3a3a;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 80px;
+  animation: bgFade 20s ease infinite alternate;
+}
+
+@keyframes bgFade {
+  0% { background-position: left; }
+  100% { background-position: right; }
+}
+
+/* ===== Container Card ===== */
+.edit-container {
+  background: #ffffffcc;
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  width: 420px;
+  padding: 32px 35px;
+  box-shadow: 0 0 25px rgba(0, 150, 136, 0.25);
+  animation: floatUp 1s ease;
+  border: 1px solid #cde8e8;
+}
+
+@keyframes floatUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.edit-container h2 {
+  text-align: center;
+  color: #00796b;
+  text-shadow: 0 0 8px rgba(0, 128, 128, 0.2);
+  margin-bottom: 20px;
+}
+
+/* ===== Form Styling ===== */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-form label {
+  font-size: 13px;
+  color: #1e3a3a;
+  letter-spacing: 0.4px;
+}
+
+.edit-form input,
+.edit-form textarea,
+.edit-form select {
+  background: #f5fffe;
+  border: 1px solid #cde8e8;
+  border-radius: 8px;
+  color: #1e3a3a;
+  padding: 8px 10px;
+  font-size: 13px;
+  transition: 0.3s ease;
+}
+
+.edit-form textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.edit-form input:focus,
+.edit-form textarea:focus,
+.edit-form select:focus {
+  outline: none;
+  border-color: #26a69a;
+  box-shadow: 0 0 10px rgba(38, 166, 154, 0.25);
+  background: #e0f7f4;
+}
+
+/* ===== Dropdown ===== */
+.edit-form select {
+  background-color: #f5fffe;
+  color: #1e3a3a;
+}
+.edit-form select option {
+  background-color: #ffffff;
+  color: #1e3a3a;
+}
+
+/* ===== Save Button ===== */
+.edit-form button {
+  background: linear-gradient(90deg, #009688, #4db6ac);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.edit-form button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0, 150, 136, 0.4);
+  background: linear-gradient(90deg, #4db6ac, #00796b);
+}
+
+/* ===== Cancel / Back Link ===== */
+.cancel-link {
+  text-align: center;
+  margin-top: 20px;
+  animation: fadeUp 1.2s ease;
+}
+
+@keyframes fadeUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.cancel-link a {
+  color: #00796b;
+  text-decoration: none;
+  font-size: 13px;
+  transition: 0.3s;
+  position: relative;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.cancel-link a::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 1px;
+  background: #009688;
+  transition: 0.3s;
+}
+
+.cancel-link a:hover::after {
+  width: 100%;
+}
+
+.cancel-link a:hover {
+  text-shadow: 0 0 8px #4db6ac;
+  transform: scale(1.05);
+}
+
+/* ===== Bottom Note ===== */
+.bottom-text {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #cde8e8;
+  font-size: 13px;
+  color: #1e3a3a;
+  text-align: center;
+  opacity: 0;
+  animation: fadeUp 1.4s ease-in-out forwards;
+  animation-delay: 0.3s;
+}
+
+.bottom-text a {
+  color: #00796b;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: all 0.3s ease;
+}
+
+.bottom-text a:hover {
+  color: #009688;
+  text-shadow: 0 0 8px #4db6ac;
+  transform: scale(1.05);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+  .edit-container {
+    width: 90%;
+    padding: 25px 20px;
+  }
+}

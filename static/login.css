@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #cfe9ff, #e8f4ff);
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+/* Main container */
+.container {
+  position: relative;
+  width: 720px;
+  height: 480px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1.5px solid rgba(200, 220, 255, 0.8);
+  border-radius: 18px;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: 1s ease-in-out;
+}
+
+/* Curved shapes (soft animation retained) */
+.curved-shape,
+.curved-shape2 {
+  position: absolute;
+  width: 900px;
+  height: 700px;
+  border-radius: 50%;
+  transition: 1.5s ease-in-out;
+  z-index: 0;
+}
+
+.curved-shape {
+  right: -200px;
+  top: -250px;
+  background: linear-gradient(60deg, #a5c9ff, #c8ddff);
+  transform: rotate(10deg) skewY(25deg);
+  opacity: 0.6;
+}
+
+.curved-shape2 {
+  left: -250px;
+  bottom: -300px;
+  background: linear-gradient(60deg, #e1efff, #b0d0ff);
+  transform: rotate(-10deg) skewY(-25deg);
+  opacity: 0.7;
+}
+
+.container.active .curved-shape {
+  transform: rotate(0deg) skewY(0deg);
+}
+
+.container.active .curved-shape2 {
+  transform: rotate(-8deg) skewY(-30deg);
+}
+
+/* Form boxes */
+.form-box {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  padding: 0 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+  transition: 1s ease-in-out;
+}
+
+/* Login */
+.form-box.login {
+  left: 0;
+}
+.container.active .form-box.login {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+/* Register */
+.form-box.register {
+  right: 0;
+  opacity: 0;
+  transform: translateX(100%);
+}
+.container.active .form-box.register {
+  transform: translateX(0%);
+  opacity: 1;
+}
+
+/* Headings */
+.form-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #204060;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Inputs */
+.input-box {
+  position: relative;
+  width: 100%;
+  margin: 18px 0;
+}
+
+.input-box input {
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.3);
+  font-size: 15px;
+  color: #204060;
+  outline: none;
+  transition: 0.3s;
+}
+
+.input-box label {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  pointer-events: none;
+  transition: 0.3s;
+}
+
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+  top: -8px;
+  font-size: 12px;
+  color: #337ab7;
+}
+
+.input-box input:focus {
+  border-bottom-color: #337ab7;
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 25px;
+  background: #4d9de0;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  background: #337ab7;
+}
+
+/* Info Panels */
+.info-content {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 1;
+  padding: 0 50px;
+  color: #204060;
+  transition: 1s ease-in-out;
+}
+
+.info-content h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.info-content p {
+  font-size: 14px;
+  color: #406080;
+}
+
+.info-content.login {
+  right: 0;
+  text-align: right;
+}
+
+.container.active .info-content.login {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.info-content.register {
+  left: 0;
+  opacity: 0;
+}
+
+.container.active .info-content.register {
+  opacity: 1;
+  transition-delay: 0.4s;
+}
+
+/* Register/Login link */
+.regi-link {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #406080;
+}
+
+.regi-link a {
+  color: #337ab7;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.regi-link a:hover {
+  text-decoration: underline;
+}
